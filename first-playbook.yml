@@ -18,20 +18,39 @@
         pkg: docker-compose
         state: latest
       
+    - name: create group
+      group:
+        name: ergonized
+        state: present
+
+    - name: create user
+      user:
+        name: ergonized
+        group: ergonized
+        createhome: no
+        system: yes
+        state: present
+
     - name: Install node_exporter
       ansible.builtin.unarchive:
-               src: https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
-               dest: /usr/local/bin
-               remote_src: yes
+        src: https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+        dest: /usr/local/bin
+        remote_src: yes
+    
+    - name: create symlink to node exporter
+      file:
+        path: /usr/bin/node_exporter
+        state: link
+        src: /usr/local/bin/node_exporter-0.18.1.linux-amd64/node_exporter
 
-    - name: Copy File
-      copy:
-        src: ./node_exporter.service
-        dest: /etc/systemd/system
-        mode: 777
-
-    - name: Enable service note_exported
-      ansible.builtin.systemd:
-       name: node_exporter.service
-       enabled: yes
-       masked: no    
+    - name: install unit file to systemd
+      template:
+        src: node_exporter.service
+        dest: /etc/systemd/system/node_exporter.service
+    
+    - name: configure systemd to use service
+      systemd:
+        daemon_reload: yes
+        enabled: yes
+        state: started
+        name: node_exporter.service
