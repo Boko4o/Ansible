@@ -1,4 +1,4 @@
-- name: htop service
+- name: Ansible task
   hosts: localhost
   become: yes
   tasks:
