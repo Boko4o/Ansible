@@ -1,0 +1,37 @@
+- name: htop service
+  hosts: localhost
+  become: yes
+  tasks:
+
+    - name: Install htop
+      apt: 
+        pkg: htop
+        state: latest
+    
+    - name: Install docker
+      apt:
+        pkg: docker.io
+        state: latest
+
+    - name: Install docker-compose
+      apt:
+        pkg: docker-compose
+        state: latest
+      
+    - name: Install node_exporter
+      ansible.builtin.unarchive:
+               src: https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+               dest: /usr/local/bin
+               remote_src: yes
+
+    - name: Copy File
+      copy:
+        src: ./node_exporter.service
+        dest: /etc/systemd/system
+        mode: 777
+
+    - name: Enable service note_exported
+      ansible.builtin.systemd:
+       name: node_exporter.service
+       enabled: yes
+       masked: no    
